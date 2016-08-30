@@ -1,0 +1,18 @@
+hash: 7b0d46d2b21d5d8ff24023a402285f87b14b9f554ae52913cc7ea08bfd17453d
+updated: 2016-07-13T23:09:11.03428654-04:00
+imports:
+- name: github.com/armon/go-radix
+  version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
+- name: github.com/codegangsta/cli
+  version: 71f57d300dd6a780ac1856c005c4b518cfd498ec
+- name: github.com/Masterminds/semver
+  version: b3ef6b1808e9889dfb8767ce7068db923a3d07de
+- name: github.com/Masterminds/vcs
+  version: fbe9fb6ad5b5f35b3e82a7c21123cfc526cbf895
+- name: github.com/sdboyer/gps
+  version: f6e74e8d79b34ee6954d0cc8b770758ec99870ad
+- name: github.com/termie/go-shutil
+  version: bcacb06fecaeec8dc42af03c87c6949f4a05c74c
+- name: gopkg.in/yaml.v2
+  version: a83829b6f1293c91addabc89d0571c246397bbf4
+testImports: []

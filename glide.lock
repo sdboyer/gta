@@ -1,0 +1,37 @@
+hash: 30a52f6d3a7cfccd53c08e2c8837804cf58dc01e26fc37f8c614047fc7c50bfa
+updated: 2016-08-30T01:53:00.073928862-04:00
+imports:
+- name: github.com/armon/go-radix
+  version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/Masterminds/glide
+  version: 3a71c090cb890e9cfa647ba7c839a415a8652e38
+  repo: https://github.com/sdboyer/glide
+  subpackages:
+  - cfg
+  - dependency
+  - gb
+  - godep
+  - godep/strip
+  - gom
+  - gpm
+  - msg
+  - path
+  - util
+- name: github.com/Masterminds/semver
+  version: 0a2c9fc0eee2c4cbb9526877c4a54da047fdcadd
+- name: github.com/Masterminds/vcs
+  version: fbe9fb6ad5b5f35b3e82a7c21123cfc526cbf895
+- name: github.com/sdboyer/gps
+  version: 278a227dfc3d595a33a77ff3f841fd8ca1bc8cd0
+- name: github.com/spf13/cobra
+  version: 37c3f8060359192150945916cbc2d72bce804b4d
+- name: github.com/spf13/pflag
+  version: 103ce5cd2042f2fe629c1957abb64ab3e7f50235
+- name: github.com/termie/go-shutil
+  version: bcacb06fecaeec8dc42af03c87c6949f4a05c74c
+  vcs: git
+- name: gopkg.in/yaml.v2
+  version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
+testImports: []

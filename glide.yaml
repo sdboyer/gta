@@ -1,0 +1,8 @@
+package: github.com/sdboyer/gta
+import:
+- package: github.com/Masterminds/glide
+  repo: https://github.com/sdboyer/glide
+  version: files-refactor
+- package: github.com/sdboyer/gps
+  version: ^0.10.0
+- package: github.com/spf13/cobra
