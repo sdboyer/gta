@@ -84,14 +84,17 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Could not detect source info for %s: %s", pkg, err)
 	}
 
-	vlist, err := sm.ListVersions(root)
+	pi := gps.ProjectIdentifier{
+		ProjectRoot: root,
+	}
+	vlist, err := sm.ListVersions(pi)
 	if err != nil {
-		return fmt.Errorf("Could not retrieve version list for %s: %s", root, err)
+		return fmt.Errorf("Could not retrieve version list for %s: %s", pi, err)
 	}
 
 	if len(vlist) == 0 {
 		// shouldn't be possible, but whatever
-		return fmt.Errorf("No versions could be located for %s", root)
+		return fmt.Errorf("No versions could be located for %s", pi)
 	}
 
 	// obnoxious constraint parsing
@@ -130,7 +133,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		ImportRoot: gps.ProjectRoot(importroot),
 	}
 
-	var vl []Version
+	var vl []gps.Version
 	for _, v := range vlist {
 		if c.Matches(v) {
 			vl = append(vl, v)
@@ -155,6 +158,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		// TODO parallel, bwahaha
 		soe := solnOrErr{v: v}
 		// TODO reparse root project every time...horribly wasteful
+		var s gps.Solver
 		s, soe.err = gps.Prepare(params, sm)
 		if soe.err == nil {
 			soe.s, soe.err = s.Solve()
@@ -165,19 +169,19 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 	}
 
 	// If we have to create these vendor trees, then back up the original vendor
-	vpath := filepath.Join(root, "vendor")
+	vpath := filepath.Join(string(root), "vendor")
 	if run != "" {
-		if _, err = os.Stat(); err != nil {
-			err = os.Rename(vpath, filepath.Join(root, "_origvendor"))
+		if _, err = os.Stat(vpath); err == nil {
+			err = os.Rename(vpath, filepath.Join(string(root), "_origvendor"))
 			if err != nil {
 				return fmt.Errorf("Failed to back up vendor folder: %s", err)
 			}
-			defer os.Rename(filepath.Join(root, "_origvendor"), vpath)
+			defer os.Rename(filepath.Join(string(root), "_origvendor"), vpath)
 		}
 	}
 
 	var fail bool
-	for k, soln := range solns {
+	for _, soln := range solns {
 		nv := fmt.Sprintf("%s@%s", root, soln.v)
 		if soln.err != nil {
 			fail = true
@@ -188,7 +192,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		if run != "" {
 			fmt.Printf("%s succeeded", nv)
 		} else {
-			err = gps.WriteSourceTree(vpath, soln.s, sm)
+			err = gps.WriteDepTree(vpath, soln.s, sm, true)
 			if err != nil {
 				fail = true
 				fmt.Printf("could not write tree for %s, skipping check", nv)
@@ -208,4 +212,9 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 			os.RemoveAll(vpath)
 		}
 	}
+
+	if fail {
+		return fmt.Errorf("Encountered one or more errors")
+	}
+	return nil
 }
