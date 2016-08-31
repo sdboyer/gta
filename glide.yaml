@@ -2,7 +2,7 @@ package: github.com/sdboyer/gta
 import:
 - package: github.com/Masterminds/glide
   repo: https://github.com/sdboyer/glide
-  version: files-refactor
+  version: vsolver
 - package: github.com/sdboyer/gps
-  version: ^0.10.0
+  version: master
 - package: github.com/spf13/cobra

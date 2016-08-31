@@ -1,12 +1,12 @@
-hash: 30a52f6d3a7cfccd53c08e2c8837804cf58dc01e26fc37f8c614047fc7c50bfa
-updated: 2016-08-30T01:53:00.073928862-04:00
+hash: 057236f6e65add6ab863a55ebc145b122f10383f3d71350bcd897e26c3919317
+updated: 2016-08-30T20:45:55.489950342-04:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/Masterminds/glide
-  version: 3a71c090cb890e9cfa647ba7c839a415a8652e38
+  version: 79d2b47c5642e965433e8b42d0fdf4faa15b9a0a
   repo: https://github.com/sdboyer/glide
   subpackages:
   - cfg
@@ -24,7 +24,7 @@ imports:
 - name: github.com/Masterminds/vcs
   version: fbe9fb6ad5b5f35b3e82a7c21123cfc526cbf895
 - name: github.com/sdboyer/gps
-  version: 278a227dfc3d595a33a77ff3f841fd8ca1bc8cd0
+  version: 948c41ae0b2c746bcb301bf01ec8acc9ae2b42fb
 - name: github.com/spf13/cobra
   version: 37c3f8060359192150945916cbc2d72bce804b4d
 - name: github.com/spf13/pflag
