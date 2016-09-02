@@ -194,7 +194,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		}
 
 		if soe.err == nil {
-			fmt.Println("done.")
+			fmt.Println("success!")
 		} else {
 			fmt.Println("failed.")
 		}
@@ -204,6 +204,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 
 	// If we have to create these vendor trees, then back up the original vendor
 	vpath := filepath.Join(string(root), "vendor")
+	var fail bool
 	if run != "" {
 		if _, err = os.Stat(vpath); err == nil {
 			err = os.Rename(vpath, filepath.Join(string(root), "_origvendor"))
@@ -213,42 +214,42 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 			defer os.Rename(filepath.Join(string(root), "_origvendor"), vpath)
 		}
 
-		var fail bool
-		for _, soln := range solns {
-			nv := fmt.Sprintf("%s@%s", root, soln.v)
-			if soln.err != nil {
+	}
+
+	for _, soln := range solns {
+		nv := fmt.Sprintf("%s@%s", root, soln.v)
+		if soln.err != nil {
+			fail = true
+			fmt.Printf("%s failed solving: %s\n", nv, soln.err)
+			continue
+		}
+
+		if run == "" {
+			fmt.Printf("%s succeeded\n", nv)
+		} else {
+			err = gps.WriteDepTree(vpath, soln.s, sm, true)
+			if err != nil {
 				fail = true
-				fmt.Printf("%s failed solving: %s\n", nv, soln.err)
+				fmt.Printf("skipping check: could not write tree for %s (err %s)\n", nv, err)
 				continue
 			}
 
-			if run != "" {
-				fmt.Printf("%s succeeded\n", nv)
+			parts := strings.Split(run, " ")
+			cmd := exec.Command(parts[0], parts[1:]...)
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				fail = true
+				fmt.Printf("%s failed with %s, output:\n%s\n", err, string(out))
 			} else {
-				err = gps.WriteDepTree(vpath, soln.s, sm, true)
-				if err != nil {
-					fail = true
-					fmt.Printf("skipping check: could not write tree for %s (err %s)\n", nv, err)
-					continue
-				}
-
-				parts := strings.Split(run, " ")
-				cmd := exec.Command(parts[0], parts[1:]...)
-				out, err := cmd.CombinedOutput()
-				if err != nil {
-					fail = true
-					fmt.Printf("%s failed with %s, output:\n%s\n", err, string(out))
-				} else {
-					fmt.Printf("%s succeeded\n", nv)
-				}
-
-				os.RemoveAll(vpath)
+				fmt.Printf("%s succeeded\n", nv)
 			}
-		}
 
-		if fail {
-			return fmt.Errorf("Encountered one or more errors")
+			os.RemoveAll(vpath)
 		}
+	}
+
+	if fail {
+		return fmt.Errorf("Encountered one or more errors")
 	}
 
 	return nil
