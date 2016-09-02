@@ -59,6 +59,10 @@ func main() {
 }
 
 func RunGTA(cmd *cobra.Command, args []string) error {
+	// Turn off errors, now that we're in here
+	cmd.SilenceErrors = true
+	cmd.SilenceUsage = true
+
 	var pkg string
 	switch len(args) {
 	case 1:
