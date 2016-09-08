@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go/build"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,6 +42,7 @@ allowed by the constraints specified in those files.`,
 var (
 	run                     string
 	branch, semver, version string
+	verbose                 bool
 )
 
 func main() {
@@ -48,9 +50,10 @@ func main() {
 	// 2. write support for executing e.g. go test
 	// 3. loader for glide files
 	RootCmd.Flags().StringVarP(&run, "run", "r", "", "Additional command to run (e.g. `go test`) as a check")
-	RootCmd.Flags().StringVarP(&semver, "semver", "v", "", "Semantic version (range or single version) to check")
+	RootCmd.Flags().StringVar(&semver, "semver", "", "Semantic version (range or single version) to check")
 	RootCmd.Flags().StringVar(&branch, "branch", "", "Branch to check")
 	RootCmd.Flags().StringVar(&version, "version", "", "Version (non-semver tag) to check")
+	RootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -155,12 +158,12 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 
 	// Set up params, including tracing
 	params := gps.SolveParameters{
-		Manifest:   rm,
-		Lock:       l,
-		RootDir:    wd,
-		ImportRoot: gps.ProjectRoot(importroot),
-		//Trace:       true,
-		//TraceLogger: log.New(os.Stdout, "", 0),
+		Manifest:    rm,
+		Lock:        l,
+		RootDir:     wd,
+		ImportRoot:  gps.ProjectRoot(importroot),
+		Trace:       true,
+		TraceLogger: log.New(os.Stdout, "", 0),
 	}
 
 	var vl []gps.Version
@@ -182,8 +185,8 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		err error
 	}
 
-	solns := make([]solnOrErr, len(vlist))
-	for k, v := range vlist {
+	solns := make([]solnOrErr, len(vl))
+	for k, v := range vl {
 		fmt.Printf("Looking for solution with %s@%s...", root, v)
 		focus.Constraint = v
 		rm.c[root] = focus
@@ -199,29 +202,37 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 
 		if soe.err == nil {
 			fmt.Println("success!")
+			if verbose {
+				for _, p := range soe.s.Projects() {
+					fmt.Printf("\t%s at %s\n", p.Ident().ProjectRoot, p.Version())
+				}
+			}
 		} else {
 			fmt.Println("failed.")
+			if verbose {
+				fmt.Println(soe.err)
+			}
 		}
 		solns[k] = soe
 	}
 	fmt.Println("") // spacer
 
 	// If we have to create these vendor trees, then back up the original vendor
-	vpath := filepath.Join(string(root), "vendor")
+	vpath := filepath.Join(wd, "vendor")
 	var fail bool
 	if run != "" {
 		if _, err = os.Stat(vpath); err == nil {
-			err = os.Rename(vpath, filepath.Join(string(root), "_origvendor"))
+			err = os.Rename(vpath, filepath.Join(wd, "_origvendor"))
 			if err != nil {
 				return fmt.Errorf("Failed to back up vendor folder: %s", err)
 			}
-			defer os.Rename(filepath.Join(string(root), "_origvendor"), vpath)
+			defer os.Rename(filepath.Join(wd, "_origvendor"), vpath)
 		}
-
 	}
 
 	for _, soln := range solns {
 		nv := fmt.Sprintf("%s@%s", root, soln.v)
+		// If solving failed, no point in even checking the run
 		if soln.err != nil {
 			fail = true
 			fmt.Printf("%s failed solving: %s\n", nv, soln.err)
@@ -231,7 +242,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		if run == "" {
 			fmt.Printf("%s succeeded\n", nv)
 		} else {
-			err = gps.WriteDepTree(vpath, soln.s, sm, true)
+			err = gps.WriteDepTree(vpath, soln.s, sm, false)
 			if err != nil {
 				fail = true
 				fmt.Printf("skipping check: could not write tree for %s (err %s)\n", nv, err)
@@ -239,16 +250,17 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 			}
 
 			parts := strings.Split(run, " ")
-			cmd := exec.Command(parts[0], parts[1:]...)
-			out, err := cmd.CombinedOutput()
+			scmd := exec.Command(parts[0], parts[1:]...)
+			out, err := scmd.CombinedOutput()
 			if err != nil {
 				fail = true
-				fmt.Printf("%s failed with %s, output:\n%s\n", err, string(out))
+				fmt.Printf("%s failed with %s, output:\n%s\n", nv, err, string(out))
 			} else {
 				fmt.Printf("%s succeeded\n", nv)
 			}
 
 			os.RemoveAll(vpath)
+			//os.Rename(vpath, filepath.Join(wd, "vend-"+soln.v.String()))
 		}
 	}
 
