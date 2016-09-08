@@ -25,7 +25,7 @@ imports:
 - name: github.com/Masterminds/vcs
   version: fbe9fb6ad5b5f35b3e82a7c21123cfc526cbf895
 - name: github.com/sdboyer/gps
-  version: d9e16a3e908da237c806e741e0663b8b93274695
+  version: 19250b57444883bc34f2255d1e6b402511f2056c
 - name: github.com/spf13/cobra
   version: 37c3f8060359192150945916cbc2d72bce804b4d
 - name: github.com/spf13/pflag
