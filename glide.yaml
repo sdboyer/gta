@@ -1,8 +1,13 @@
 package: github.com/sdboyer/gta
-import:
+dependencies:
 - package: github.com/Masterminds/glide
   repo: https://github.com/sdboyer/glide
-  version: vsolver
+  branch: vsolver
 - package: github.com/sdboyer/gps
-  version: master
+  branch: fix-netname
 - package: github.com/spf13/cobra
+  branch: master
+- package: github.com/spf13/pflag
+  branch: master
+ignore:
+- github.com/kr/pretty
