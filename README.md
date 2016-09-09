@@ -36,10 +36,13 @@ $ gta -r "go test" github.com/somedep/tocheckitsversions
 
 See `gta --help` for more information.
 
-## Caveats
+## Notes
 
 * This is very alpha - "release early, release often" - and while it has worked
   at least once, it will likely break :) Please file issues!
+* The output is probably at least a little confusing right now. Issues asking
+  questions or making suggestions about how it might be improved are
+  PARTICULARLY welcome!
 * The format of gta's `glide.yaml` file is not one your standard version of
   glide can read, so don't bother trying (it's based on the [PR to integrate
   gps into glide](https://github.com/Masterminds/glide/pull/384))
