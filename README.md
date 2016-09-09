@@ -17,6 +17,9 @@ In general, gta is probably most useful for exploring a semver range you've
 already set in a manifest, or for simply exploring _all_ the possible versions
 of a particular dependency.
 
+In short, if you're not sure what version of a dependency you want to use,
+running gta might help you figure it out.
+
 ## Installation
 
 ```
