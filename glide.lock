@@ -6,7 +6,7 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/Masterminds/glide
-  version: 005633649af58d7c7be0b9920fa82ab668288e96
+  version: 2756e25ce7b7b14646a3796aa1775081a15520b3
   repo: https://github.com/sdboyer/glide
   subpackages:
   - cfg
@@ -25,7 +25,7 @@ imports:
 - name: github.com/Masterminds/vcs
   version: fbe9fb6ad5b5f35b3e82a7c21123cfc526cbf895
 - name: github.com/sdboyer/gps
-  version: 19250b57444883bc34f2255d1e6b402511f2056c
+  version: 6e8a101af5e735feedcdae1f716bebc338b74525
 - name: github.com/spf13/cobra
   version: 37c3f8060359192150945916cbc2d72bce804b4d
 - name: github.com/spf13/pflag
