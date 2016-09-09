@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"go/build"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -160,12 +159,12 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 
 	// Set up params, including tracing
 	params := gps.SolveParameters{
-		Manifest:    rm,
-		Lock:        l,
-		RootDir:     wd,
-		ImportRoot:  gps.ProjectRoot(importroot),
-		Trace:       true,
-		TraceLogger: log.New(os.Stdout, "", 0),
+		Manifest:   rm,
+		Lock:       l,
+		RootDir:    wd,
+		ImportRoot: gps.ProjectRoot(importroot),
+		//Trace:       true,
+		//TraceLogger: log.New(os.Stdout, "", 0),
 	}
 
 	var vl []gps.Version
@@ -216,11 +215,11 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 					id := p.Ident()
 					switch v := p.Version().(type) {
 					case gps.Revision:
-						fmt.Printf("\t%s at %s", ppi(id), v.String()[:7])
+						fmt.Printf("\t%s at %s\n", ppi(id), v.String()[:7])
 					case gps.UnpairedVersion:
-						fmt.Printf("\t%s at %s", ppi(id), v)
+						fmt.Printf("\t%s at %s\n", ppi(id), v)
 					case gps.PairedVersion:
-						fmt.Printf("\t%s at %s (%s)", ppi(id), v, v.Underlying().String()[:7])
+						fmt.Printf("\t%s at %s (%s)\n", ppi(id), v, v.Underlying().String()[:7])
 					}
 				}
 			}
@@ -236,7 +235,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 
 	// If we have to create these vendor trees, then back up the original vendor
 	vpath := filepath.Join(wd, "vendor")
-	var fail bool
+	fails := make(map[gps.Version]bool)
 	if run != "" {
 		if _, err = os.Stat(vpath); err == nil {
 			err = os.Rename(vpath, filepath.Join(wd, "_origvendor"))
@@ -251,7 +250,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		nv := fmt.Sprintf("%s@%s", root, soln.v)
 		// If solving failed, no point in even checking the run
 		if soln.err != nil {
-			fail = true
+			fails[soln.v] = true
 			fmt.Printf("%s failed solving: %s\n", nv, soln.err)
 			continue
 		}
@@ -261,7 +260,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		} else {
 			err = gps.WriteDepTree(vpath, soln.s, sm, true)
 			if err != nil {
-				fail = true
+				fails[soln.v] = true
 				fmt.Printf("skipping check: could not write tree for %s (err %s)\n", nv, err)
 				continue
 			}
@@ -270,8 +269,8 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 			scmd := exec.Command(parts[0], parts[1:]...)
 			out, err := scmd.CombinedOutput()
 			if err != nil {
-				fail = true
-				fmt.Printf("%s failed with %s, output:\n%s\n", nv, err, string(out))
+				fails[soln.v] = true
+				fmt.Printf("`%s` against %s failed with %s, output:\n%s\n", run, nv, err, string(out))
 			} else {
 				fmt.Printf("%s succeeded\n", nv)
 			}
@@ -281,8 +280,19 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if fail {
-		return fmt.Errorf("Encountered one or more errors")
+	var succ []gps.Version
+	for _, v := range vl {
+		if !fails[v] {
+			succ = append(succ, v)
+		}
+	}
+
+	if len(succ) == 0 {
+		return fmt.Errorf("None of the %v versions tried were ok", len(vl))
+	} else if len(fails) == 0 {
+		fmt.Printf("All of the %v versions tried were ok:\n\t%s\n", len(vl), vl)
+	} else {
+		fmt.Printf("%v of the %v versions tried were ok:\n\t%s\n", len(succ), len(vl), succ)
 	}
 
 	return nil
