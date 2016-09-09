@@ -144,6 +144,8 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 	}
 	rm := prepManifest(m)
 
+	//pretty.Println(m, rm, l)
+
 	var focus gps.ProjectConstraint
 	var has bool
 	if focus, has = rm.c[root]; !has {
@@ -185,6 +187,13 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		err error
 	}
 
+	ppi := func(id gps.ProjectIdentifier) string {
+		if id.NetworkName == "" || id.NetworkName == string(id.ProjectRoot) {
+			return string(id.ProjectRoot)
+		}
+		return fmt.Sprintf("%s (from %s)", id.ProjectRoot, id.NetworkName)
+	}
+
 	solns := make([]solnOrErr, len(vl))
 	for k, v := range vl {
 		fmt.Printf("Looking for solution with %s@%s...", root, v)
@@ -204,7 +213,15 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 			fmt.Println("success!")
 			if verbose {
 				for _, p := range soe.s.Projects() {
-					fmt.Printf("\t%s at %s\n", p.Ident().ProjectRoot, p.Version())
+					id := p.Ident()
+					switch v := p.Version().(type) {
+					case gps.Revision:
+						fmt.Printf("\t%s at %s", ppi(id), v.String()[:7])
+					case gps.UnpairedVersion:
+						fmt.Printf("\t%s at %s", ppi(id), v)
+					case gps.PairedVersion:
+						fmt.Printf("\t%s at %s (%s)", ppi(id), v, v.Underlying().String()[:7])
+					}
 				}
 			}
 		} else {
@@ -215,7 +232,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		}
 		solns[k] = soe
 	}
-	fmt.Println("") // spacer
+	fmt.Println("") // just a spacer
 
 	// If we have to create these vendor trees, then back up the original vendor
 	vpath := filepath.Join(wd, "vendor")
@@ -242,7 +259,7 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		if run == "" {
 			fmt.Printf("%s succeeded\n", nv)
 		} else {
-			err = gps.WriteDepTree(vpath, soln.s, sm, false)
+			err = gps.WriteDepTree(vpath, soln.s, sm, true)
 			if err != nil {
 				fail = true
 				fmt.Printf("skipping check: could not write tree for %s (err %s)\n", nv, err)
