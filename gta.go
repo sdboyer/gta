@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go/build"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,16 +33,17 @@ gta will also execute that command for each solution. ` + "`go test`" + ` is usu
 the simplest useful command to run here.
 
 Unless --no-pm is specified, gta will try to detect if metadata files for
-package managers (currently only glide) are present. If so, rather than testing
-all possible versions of the dependency, it will only check versions that are
-allowed by the constraints specified in those files.`,
+package managers are present (it works best with glide, but may work with
+others). If so, rather than testing all possible versions of the dependency, it
+will only check versions that are allowed by the constraints specified in those
+files.`,
 	RunE: RunGTA,
 }
 
 var (
 	run                     string
 	branch, semver, version string
-	verbose                 bool
+	verbose, trace          bool
 )
 
 func main() {
@@ -53,6 +55,7 @@ func main() {
 	RootCmd.Flags().StringVar(&branch, "branch", "", "Branch to check")
 	RootCmd.Flags().StringVar(&version, "version", "", "Version (non-semver tag) to check")
 	RootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
+	RootCmd.Flags().BoolVarP(&trace, "trace", "t", false, "Include solver tracing in output")
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -163,8 +166,11 @@ func RunGTA(cmd *cobra.Command, args []string) error {
 		Lock:       l,
 		RootDir:    wd,
 		ImportRoot: gps.ProjectRoot(importroot),
-		//Trace:       true,
-		//TraceLogger: log.New(os.Stdout, "", 0),
+	}
+
+	if trace {
+		params.Trace = true
+		params.TraceLogger = log.New(os.Stdout, "", 0)
 	}
 
 	var vl []gps.Version
